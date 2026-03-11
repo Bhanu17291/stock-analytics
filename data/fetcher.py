@@ -1,25 +1,34 @@
-# data/fetcher.py
-import yfinance as yf
-import pandas as pd
 import requests
-session = requests.Session()
-session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-})
+import pandas as pd
+import os
+from datetime import datetime
+
+API_KEY = os.environ.get("ALPHA_VANTAGE_KEY", "")
+BASE_URL = "https://www.alphavantage.co/query"
 
 def fetch_stock_data(ticker: str, period: str = "6mo") -> pd.DataFrame:
-    """Fetch OHLCV stock data from Yahoo Finance."""
     try:
-        stock = yf.Ticker(ticker,session=session)
-        df = stock.history(period=period)
-        if df.empty:
+        params = {
+            "function": "TIME_SERIES_DAILY",
+            "symbol": ticker,
+            "outputsize": "compact",
+            "apikey": API_KEY
+        }
+        r = requests.get(BASE_URL, params=params)
+        data = r.json()
+        ts = data.get("Time Series (Daily)", {})
+        if not ts:
             return pd.DataFrame()
+        df = pd.DataFrame.from_dict(ts, orient="index")
         df.index = pd.to_datetime(df.index)
-        df.index = df.index.tz_localize(None)
+        df = df.sort_index()
+        df.columns = ["Open", "High", "Low", "Close", "Volume"]
+        df = df.astype(float)
+
+        # Filter by period
+        period_days = {"1mo": 30, "3mo": 90, "6mo": 180, "1y": 365, "2y": 730, "5y": 1825}
+        days = period_days.get(period, 180)
+        df = df[df.index >= pd.Timestamp.now() - pd.Timedelta(days=days)]
         return df
     except Exception as e:
         print(f"Error fetching data for {ticker}: {e}")
@@ -27,19 +36,23 @@ def fetch_stock_data(ticker: str, period: str = "6mo") -> pd.DataFrame:
 
 
 def fetch_stock_info(ticker: str) -> dict:
-    """Fetch company info and current price."""
     try:
-        stock = yf.Ticker(ticker,session=session)
-        info = stock.info
+        params = {
+            "function": "OVERVIEW",
+            "symbol": ticker,
+            "apikey": API_KEY
+        }
+        r = requests.get(BASE_URL, params=params)
+        info = r.json()
         return {
-            "name": info.get("longName", ticker),
-            "sector": info.get("sector", "N/A"),
-            "market_cap": info.get("marketCap", 0),
-            "pe_ratio": info.get("trailingPE", 0),
-            "52w_high": info.get("fiftyTwoWeekHigh", 0),
-            "52w_low": info.get("fiftyTwoWeekLow", 0),
-            "current_price": info.get("currentPrice", info.get("regularMarketPrice", 0)),
-            "currency": info.get("currency", "USD"),
+            "name": info.get("Name", ticker),
+            "sector": info.get("Sector", "N/A"),
+            "market_cap": float(info.get("MarketCapitalization", 0)),
+            "pe_ratio": float(info.get("PERatio", 0) or 0),
+            "52w_high": float(info.get("52WeekHigh", 0) or 0),
+            "52w_low": float(info.get("52WeekLow", 0) or 0),
+            "current_price": float(info.get("50DayMovingAverage", 0) or 0),
+            "currency": "USD",
         }
     except Exception as e:
         print(f"Error fetching info for {ticker}: {e}")
@@ -47,19 +60,23 @@ def fetch_stock_info(ticker: str) -> dict:
 
 
 def fetch_news(ticker: str) -> list:
-    """Fetch latest news for a ticker."""
     try:
-        stock = yf.Ticker(ticker,session=session)
-        news = stock.news
+        params = {
+            "function": "NEWS_SENTIMENT",
+            "tickers": ticker,
+            "limit": 10,
+            "apikey": API_KEY
+        }
+        r = requests.get(BASE_URL, params=params)
+        data = r.json()
         results = []
-        for item in news[:10]:
-            content = item.get("content", {})
+        for item in data.get("feed", [])[:10]:
             results.append({
-                "title": content.get("title", "No title"),
-                "summary": content.get("summary", ""),
-                "url": content.get("canonicalUrl", {}).get("url", "#"),
-                "publisher": content.get("provider", {}).get("displayName", "Unknown"),
-                "published": content.get("pubDate", ""),
+                "title": item.get("title", "No title"),
+                "summary": item.get("summary", ""),
+                "url": item.get("url", "#"),
+                "publisher": item.get("source", "Unknown"),
+                "published": item.get("time_published", ""),
             })
         return results
     except Exception as e:
@@ -68,14 +85,10 @@ def fetch_news(ticker: str) -> list:
 
 
 def get_current_price(ticker: str) -> float:
-    """Get the latest closing price."""
     try:
         df = fetch_stock_data(ticker, period="5d")
         if not df.empty:
-            close = df["Close"]
-            if hasattr(close, 'columns'):
-                close = close.iloc[:, 0]
-            return round(float(close.iloc[-1]), 2)
+            return round(float(df["Close"].iloc[-1]), 2)
         return 0.0
     except:
         return 0.0
