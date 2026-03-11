@@ -1,0 +1,20 @@
+{
+  "AAPL": {
+    "shares": 10,
+    "buy_price": 220.0
+  },
+  "TSLA": {
+    "shares": 5,
+    "buy_price": 300.0
+  },
+  "TATA": {
+    "shares": 70.0,
+    "buy_price": 200.0,
+    "added_at": "2026-03-12T01:58:57.747451"
+  },
+  "HELLO": {
+    "shares": 70.0,
+    "buy_price": 200.0,
+    "added_at": "2026-03-12T02:01:29.895513"
+  }
+}

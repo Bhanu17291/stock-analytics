@@ -15,7 +15,6 @@ def build_candlestick_chart(ticker: str, period: str = "6mo") -> go.Figure:
 
     df = get_all_indicators(df)
 
-    # Flatten columns if MultiIndex
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
 
@@ -26,7 +25,6 @@ def build_candlestick_chart(ticker: str, period: str = "6mo") -> go.Figure:
         row_heights=[0.75, 0.25]
     )
 
-    # Candlestick
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df["Open"], high=df["High"],
@@ -36,7 +34,6 @@ def build_candlestick_chart(ticker: str, period: str = "6mo") -> go.Figure:
         decreasing_line_color="#ef5350"
     ), row=1, col=1)
 
-    # Bollinger Bands
     fig.add_trace(go.Scatter(x=df.index, y=df["BB_Upper"], name="BB Upper",
                              line=dict(color="rgba(173,216,230,0.6)", width=1), showlegend=True), row=1, col=1)
     fig.add_trace(go.Scatter(x=df.index, y=df["BB_Middle"], name="BB Middle",
@@ -45,13 +42,11 @@ def build_candlestick_chart(ticker: str, period: str = "6mo") -> go.Figure:
                              line=dict(color="rgba(173,216,230,0.6)", width=1),
                              fill="tonexty", fillcolor="rgba(173,216,230,0.05)", showlegend=True), row=1, col=1)
 
-    # EMA & SMA
     fig.add_trace(go.Scatter(x=df.index, y=df["EMA_20"], name="EMA 20",
                              line=dict(color="#ff9800", width=1.5)), row=1, col=1)
     fig.add_trace(go.Scatter(x=df.index, y=df["SMA_50"], name="SMA 50",
                              line=dict(color="#ab47bc", width=1.5)), row=1, col=1)
 
-    # Volume bars
     colors = ["#26a69a" if c >= o else "#ef5350"
               for c, o in zip(df["Close"], df["Open"])]
     fig.add_trace(go.Bar(x=df.index, y=df["Volume"], name="Volume",

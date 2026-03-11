@@ -3,26 +3,27 @@ import dash
 from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from components.charts import build_candlestick_chart, build_rsi_chart, build_macd_chart
-from components.portfolio import add_stock, remove_stock, get_portfolio_summary, get_portfolio_totals
+from components.portfolio import add_stock, remove_stock, get_portfolio_summary, get_portfolio_totals, record_portfolio_snapshot
+from components.portfolio_charts import build_allocation_chart, build_pnl_history_chart
 from components.news import build_news_feed
 from config import DEFAULT_TICKER, AVAILABLE_PERIODS, DEFAULT_PERIOD, APP_TITLE, APP_PORT, DEBUG
+from utils.helpers import fmt_market_cap, currency_symbol
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG], title=APP_TITLE, suppress_callback_exceptions=True)
 
 STOCK_OPTIONS = [
-    {"label": "🇺🇸 Apple Inc. (AAPL)", "value": "AAPL"},
-    {"label": "🇮🇳 Reliance Industries (RELIANCE.BO)", "value": "RELIANCE.BO"},
-    {"label": "🇮🇳 Tata Consultancy Services (TCS.BO)", "value": "TCS.BO"},
-    {"label": "🇮🇳 HDFC Bank (HDFCBANK.BO)", "value": "HDFCBANK.BO"},
-    {"label": "🇮🇳 Infosys (INFY.BO)", "value": "INFY.BO"},
-    {"label": "🇮🇳 ICICI Bank (ICICIBANK.BO)", "value": "ICICIBANK.BO"},
-    {"label": "🇮🇳 Hindustan Unilever (HINDUNILVR.BO)", "value": "HINDUNILVR.BO"},
-    {"label": "🇮🇳 State Bank of India (SBIN.BO)", "value": "SBIN.BO"},
-    {"label": "🇮🇳 Bajaj Finance (BAJFINANCE.BO)", "value": "BAJFINANCE.BO"},
-    {"label": "🇮🇳 Larsen & Toubro (LT.BO)", "value": "LT.BO"},
-    {"label": "🇮🇳 Kotak Mahindra Bank (KOTAKBANK.BO)", "value": "KOTAKBANK.BO"},
+    {"label": "🇺🇸 Apple Inc. (AAPL)",                      "value": "AAPL"},
+    {"label": "🇮🇳 Reliance Industries (RELIANCE.BO)",       "value": "RELIANCE.BO"},
+    {"label": "🇮🇳 Tata Consultancy Services (TCS.BO)",      "value": "TCS.BO"},
+    {"label": "🇮🇳 HDFC Bank (HDFCBANK.BO)",                 "value": "HDFCBANK.BO"},
+    {"label": "🇮🇳 Infosys (INFY.BO)",                       "value": "INFY.BO"},
+    {"label": "🇮🇳 ICICI Bank (ICICIBANK.BO)",               "value": "ICICIBANK.BO"},
+    {"label": "🇮🇳 Hindustan Unilever (HINDUNILVR.BO)",      "value": "HINDUNILVR.BO"},
+    {"label": "🇮🇳 State Bank of India (SBIN.BO)",           "value": "SBIN.BO"},
+    {"label": "🇮🇳 Bajaj Finance (BAJFINANCE.BO)",           "value": "BAJFINANCE.BO"},
+    {"label": "🇮🇳 Larsen & Toubro (LT.BO)",                 "value": "LT.BO"},
+    {"label": "🇮🇳 Kotak Mahindra Bank (KOTAKBANK.BO)",      "value": "KOTAKBANK.BO"},
 ]
-
 
 
 # ── NAVBAR ───────────────────────────────────────────────────────────────
@@ -32,7 +33,10 @@ navbar = dbc.Navbar(
             html.Span(className="live-dot"),
             html.Span(APP_TITLE, className="navbar-title"),
         ], className="d-flex align-items-center"),
-        html.Span("Real-time Market Analytics", className="text-muted small d-none d-md-block"),
+        html.Div([
+            html.Span("Real-time Market Analytics", className="text-muted small d-none d-md-block me-3"),
+            html.Div(id="last-updated", className="last-updated-badge d-none d-md-flex"),
+        ], className="d-flex align-items-center"),
     ], fluid=True, className="d-flex justify-content-between align-items-center"),
     className="mb-3 main-navbar",
 )
@@ -74,7 +78,13 @@ search_bar = dbc.Card(
             dbc.Col(
                 dbc.Button("🔍 Analyze", id="analyze-btn", color="primary",
                            className="w-100 analyze-btn"),
-                xs=6, sm=6, md=3
+                xs=4, sm=4, md=2
+            ),
+            dbc.Col(
+                dbc.Button("🔄", id="refresh-btn", color="secondary",
+                           className="w-100 refresh-btn",
+                           title="Refresh data"),
+                xs=2, sm=2, md=1
             ),
         ], className="g-2")
     ]),
@@ -126,8 +136,11 @@ app.layout = html.Div([
             children=tab_content,
         ),
     ], fluid=True),
-    dcc.Store(id="current-ticker", data=DEFAULT_TICKER),
-    dcc.Store(id="current-period", data=DEFAULT_PERIOD),
+    dcc.Store(id="current-ticker",      data=DEFAULT_TICKER),
+    dcc.Store(id="current-period",      data=DEFAULT_PERIOD),
+    dcc.Store(id="prev-price-store",    data={}),
+    # Auto-refresh every 5 minutes
+    dcc.Interval(id="auto-refresh",     interval=5 * 60 * 1000, n_intervals=0),
 ], style={"backgroundColor": "#0d0d1a", "minHeight": "100vh"})
 
 
@@ -145,14 +158,22 @@ def quick_select_stock(selected):
 @app.callback(
     Output("current-ticker", "data"),
     Output("current-period", "data"),
-    Output("error-toast", "children"),
-    Output("error-toast", "is_open"),
-    Input("analyze-btn", "n_clicks"),
-    State("ticker-input", "value"),
+    Output("error-toast",    "children"),
+    Output("error-toast",    "is_open"),
+    Input("analyze-btn",     "n_clicks"),
+    Input("refresh-btn",     "n_clicks"),
+    State("ticker-input",    "value"),
     State("period-dropdown", "value"),
+    State("current-ticker",  "data"),
+    State("current-period",  "data"),
     prevent_initial_call=True
 )
-def update_ticker(n_clicks, ticker, period):
+def update_ticker(analyze_clicks, refresh_clicks, ticker, period, current_ticker, current_period):
+    from dash import ctx
+    # Refresh button just re-triggers with same ticker
+    if ctx.triggered_id == "refresh-btn":
+        return current_ticker, current_period, "", False
+
     if not ticker or not ticker.strip():
         return dash.no_update, dash.no_update, "Please enter a valid ticker symbol.", True
     clean = ticker.upper().strip()
@@ -160,61 +181,92 @@ def update_ticker(n_clicks, ticker, period):
 
 
 @app.callback(
-    Output("info-cards", "children"),
-    Input("current-ticker", "data")
+    Output("info-cards",       "children"),
+    Output("prev-price-store", "data"),
+    Output("last-updated",     "children"),
+    Input("current-ticker",    "data"),
+    Input("auto-refresh",      "n_intervals"),
+    State("prev-price-store",  "data"),
 )
-def update_info_cards(ticker):
+def update_info_cards(ticker, n_intervals, prev_prices):
     from data.fetcher import fetch_stock_info
+    from datetime import datetime
+
     info = fetch_stock_info(ticker)
+
+    # Last updated badge
+    now         = datetime.now().strftime("%H:%M:%S")
+    updated_badge = [
+        html.Span("↻ ", style={"color": "#6366f1"}),
+        html.Span(f"Updated {now}", style={"fontSize": "0.72rem", "color": "#6b6b9a"}),
+    ]
 
     if not info:
         return [dbc.Col(html.Div([
             html.Span("⚠️", style={"fontSize": "1.5rem"}),
             html.P(f"Could not load data for '{ticker}'.", className="text-muted small mb-0 mt-1"),
-        ], className="error-card"), width=12)]
+        ], className="error-card"), width=12)], prev_prices, updated_badge
 
-    def fmt_market_cap(val):
-        if not val: return "N/A"
-        if val >= 1e12: return f"${val/1e12:.2f}T"
-        if val >= 1e9:  return f"${val/1e9:.2f}B"
-        if val >= 1e6:  return f"${val/1e6:.2f}M"
-        return f"${val:,.0f}"
+    curr_symbol  = currency_symbol(info.get("currency", "USD"))
+    price        = info.get("current_price", 0)
+    prev_price   = prev_prices.get(ticker, price)
+    price_delta  = price - prev_price
+    price_change = (price_delta / prev_price * 100) if prev_price else 0
 
-    price = info.get("current_price", 0)
-    currency = info.get("currency", "USD")
-    symbol = "₹" if currency == "INR" else "$"
+    # Price change badge
+    if abs(price_change) < 0.01:
+        change_el = html.Span("—", style={"color": "#6b6b9a", "fontSize": "0.72rem"})
+    elif price_change > 0:
+        change_el = html.Span(
+            f"▲ +{price_change:.2f}%",
+            className="price-badge price-up"
+        )
+    else:
+        change_el = html.Span(
+            f"▼ {price_change:.2f}%",
+            className="price-badge price-down"
+        )
 
-    cards = [
-        ("🏢 Company",    info.get("name", ticker)),
-        ("💰 Price",      f"{symbol}{price:,.2f}"),
-        ("📊 Market Cap", fmt_market_cap(info.get("market_cap", 0))),
-        ("📈 52W High",   f"{symbol}{info.get('52w_high', 0):,.2f}"),
-        ("📉 52W Low",    f"{symbol}{info.get('52w_low', 0):,.2f}"),
-        ("🏭 Sector",     info.get("sector", "N/A")),
+    cards_data = [
+        ("🏢 Company",    info.get("name", ticker),                       None),
+        ("💰 Price",      f"{curr_symbol}{price:,.2f}",                   change_el),
+        ("📊 Market Cap", fmt_market_cap(info.get("market_cap", 0)),       None),
+        ("📈 52W High",   f"{curr_symbol}{info.get('52w_high', 0):,.2f}", None),
+        ("📉 52W Low",    f"{curr_symbol}{info.get('52w_low',  0):,.2f}", None),
+        ("🏭 Sector",     info.get("sector", "N/A"),                       None),
     ]
 
-    return [
-        dbc.Col(
-            dbc.Card(
-                dbc.CardBody([
-                    html.P(label, className="stat-label mb-1"),
-                    html.Div(value, className="stat-value"),
-                ]),
-                className="stat-card h-100"
-            ),
-            xs=6, sm=4, md=2,
-            className="info-card-col"
-        ) for label, value in cards
-    ]
+    cols = []
+    for label, value, extra in cards_data:
+        cols.append(
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody([
+                        html.P(label, className="stat-label mb-1"),
+                        html.Div([
+                            html.Div(value, className="stat-value"),
+                            extra,
+                        ], className="d-flex align-items-center gap-2 flex-wrap"),
+                    ]),
+                    className="stat-card h-100"
+                ),
+                xs=6, sm=4, md=2,
+                className="info-card-col"
+            )
+        )
+
+    new_prev = {**prev_prices, ticker: price}
+    return cols, new_prev, updated_badge
 
 
 @app.callback(
-    Output("tab-content", "children"),
-    Input("tabs", "active_tab"),
+    Output("tab-content",   "children"),
+    Input("tabs",           "active_tab"),
     Input("current-ticker", "data"),
     Input("current-period", "data"),
+    Input("auto-refresh",   "n_intervals"),
 )
-def render_tab(active_tab, ticker, period):
+def render_tab(active_tab, ticker, period, n_intervals):
 
     # ── CHART TAB ──
     if active_tab == "tab-chart":
@@ -238,18 +290,38 @@ def render_tab(active_tab, ticker, period):
 
     # ── PORTFOLIO TAB ──
     elif active_tab == "tab-portfolio":
+        alloc_fig   = build_allocation_chart()
+        history_fig = build_pnl_history_chart()
+        record_portfolio_snapshot()
+
+        charts_row = dbc.Row([
+            dbc.Col(
+                html.Div(dcc.Graph(figure=alloc_fig, config={"responsive": True}),
+                         className="chart-wrapper fade-in") if alloc_fig.data else html.Div(),
+                xs=12, md=5,
+            ),
+            dbc.Col(
+                html.Div(dcc.Graph(figure=history_fig, config={"responsive": True}),
+                         className="chart-wrapper fade-in", style={"animationDelay": "0.1s"}) if history_fig.data else
+                dbc.Alert("📈 Add stocks and check back tomorrow to see your value history.",
+                          color="secondary", className="fade-in"),
+                xs=12, md=7,
+            ),
+        ], className="mb-3 g-2")
+
         return html.Div([
             dbc.Card(dbc.CardBody([
                 html.H5("➕ Manage Portfolio", className="mb-3 text-white fw-semibold"),
                 dbc.Row([
-                    dbc.Col(dbc.Input(id="p-ticker",  placeholder="Ticker",        type="text",   className="custom-input"), xs=12, sm=6, md=3),
-                    dbc.Col(dbc.Input(id="p-shares",  placeholder="Shares",        type="number", className="custom-input"), xs=6,  sm=6, md=3),
-                    dbc.Col(dbc.Input(id="p-price",   placeholder="Buy Price",     type="number", className="custom-input"), xs=6,  sm=6, md=3),
+                    dbc.Col(dbc.Input(id="p-ticker",  placeholder="Ticker",    type="text",   className="custom-input"), xs=12, sm=6, md=3),
+                    dbc.Col(dbc.Input(id="p-shares",  placeholder="Shares",    type="number", className="custom-input"), xs=6,  sm=6, md=3),
+                    dbc.Col(dbc.Input(id="p-price",   placeholder="Buy Price", type="number", className="custom-input"), xs=6,  sm=6, md=3),
                     dbc.Col(dbc.Button("➕ Add",    id="add-stock-btn",    color="success", className="w-100"), xs=6, sm=3, md=2),
                     dbc.Col(dbc.Button("🗑️ Remove", id="remove-stock-btn", color="danger",  className="w-100"), xs=6, sm=3, md=1),
                 ], className="g-2"),
                 html.Div(id="portfolio-msg", className="mt-2"),
             ]), className="mb-3 portfolio-add-card"),
+            charts_row,
             html.Div(id="portfolio-table"),
         ], className="fade-in")
 
@@ -305,7 +377,6 @@ def update_portfolio(add_clicks, remove_clicks, ticker, shares, price):
 # ── HELPERS ──────────────────────────────────────────────────────────────
 
 def _empty_state(ticker: str, section: str) -> html.Div:
-    """Shown when data fetch fails."""
     return html.Div([
         html.Span("📭", style={"fontSize": "2.5rem"}),
         html.H5(f"No data available for '{ticker}'", className="text-white mt-3 mb-1"),
@@ -341,7 +412,7 @@ def _build_portfolio_table() -> html.Div:
 
     total_row = html.Tr([
         html.Td("TOTAL", colSpan=4, className="fw-bold text-white"),
-        html.Td(f"${totals['invested']:,.2f}",     className="fw-bold"),
+        html.Td(f"${totals['invested']:,.2f}",      className="fw-bold"),
         html.Td(f"${totals['current_value']:,.2f}", className="fw-bold"),
         html.Td(html.Span(
             f"{'+'if totals['pnl']>=0 else ''}{totals['pnl']:,.2f} ({totals['pnl_pct']}%)",

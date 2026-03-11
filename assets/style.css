@@ -89,6 +89,33 @@ body {
     }
 }
 
+@keyframes price-flash-up {
+    0% {
+        background: rgba(16, 185, 129, 0.25);
+    }
+    100% {
+        background: transparent;
+    }
+}
+
+@keyframes price-flash-down {
+    0% {
+        background: rgba(244, 63, 94, 0.25);
+    }
+    100% {
+        background: transparent;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .fade-in {
     animation: fadeUp 0.45s cubic-bezier(.22, .68, 0, 1.2) both;
 }
@@ -131,6 +158,22 @@ body {
 }
 
 
+/* Last-updated badge in navbar */
+
+.last-updated-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+}
+
+
 /* ── Search Card ──────────────────────────────────────────────────────── */
 
 .search-card {
@@ -169,9 +212,6 @@ body {
 
 /* ── Dropdown overrides ───────────────────────────────────────────────── */
 
-
-/* Control (the visible box) */
-
 .Select-control {
     background-color: #0a0a20 !important;
     border: 1px solid #252550 !important;
@@ -187,9 +227,6 @@ body {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
 }
 
-
-/* Dropdown menu panel */
-
 .Select-menu-outer {
     background-color: #0f0f28 !important;
     border: 1px solid #2e2e5e !important;
@@ -200,17 +237,11 @@ body {
     overflow: hidden;
 }
 
-
-/* Scrollable inner list */
-
 .Select-menu {
     background-color: transparent !important;
     max-height: 280px !important;
     padding: 6px !important;
 }
-
-
-/* Each option row */
 
 .Select-option,
 .Select-option * {
@@ -255,9 +286,6 @@ body {
     padding-left: 11px !important;
 }
 
-
-/* Placeholder and selected value text */
-
 .Select-placeholder {
     color: #38385a !important;
     font-size: 0.875rem !important;
@@ -270,9 +298,6 @@ body {
     font-size: 0.875rem !important;
     font-weight: 500 !important;
 }
-
-
-/* Arrow icon */
 
 .Select-arrow-zone {
     padding-right: 10px !important;
@@ -288,9 +313,6 @@ body {
     border-top-color: var(--accent-1) !important;
 }
 
-
-/* Clear (×) button */
-
 .Select-clear-zone {
     color: #5555aa !important;
     transition: color 0.15s ease;
@@ -299,9 +321,6 @@ body {
 .Select-clear-zone:hover {
     color: var(--red) !important;
 }
-
-
-/* Flag emoji sizing in options */
 
 .Select-option span,
 .Select-value-label span {
@@ -341,6 +360,64 @@ body {
 
 .analyze-btn:active {
     transform: translateY(0) !important;
+}
+
+
+/* ── Refresh Button ───────────────────────────────────────────────────── */
+
+.refresh-btn {
+    font-size: 1.1rem !important;
+    background: rgba(99, 102, 241, 0.1) !important;
+    border: 1px solid rgba(99, 102, 241, 0.25) !important;
+    border-radius: 10px !important;
+    color: var(--accent-3) !important;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.refresh-btn:hover {
+    background: rgba(99, 102, 241, 0.22) !important;
+    transform: rotate(45deg) scale(1.1) !important;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3) !important;
+}
+
+.refresh-btn:active {
+    transform: rotate(180deg) !important;
+}
+
+
+/* ── Price Change Badges ──────────────────────────────────────────────── */
+
+.price-badge {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.price-up {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.price-down {
+    color: #f43f5e;
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+}
+
+
+/* Flash animation when price updates */
+
+.price-flash-up {
+    animation: price-flash-up 0.6s ease both;
+}
+
+.price-flash-down {
+    animation: price-flash-down 0.6s ease both;
 }
 
 
@@ -534,6 +611,13 @@ body {
 }
 
 
+/* Sentiment banner inside news */
+
+.sentiment-banner {
+    font-size: 0.85rem !important;
+}
+
+
 /* ── Error / Empty State ──────────────────────────────────────────────── */
 
 .error-card {
@@ -591,6 +675,9 @@ body {
         padding: 0.5rem 0.75rem;
         font-size: 0.75rem;
     }
+    .last-updated-badge {
+        display: none !important;
+    }
 }
 
 @media (max-width: 576px) {
@@ -602,4 +689,44 @@ body {
     .search-card {
         border-radius: 12px !important;
     }
+}
+
+
+/* ── Dash Core Dropdown white text fix ───────────────────────────────────── */
+
+.dash-dropdown .Select-value-label,
+.dash-dropdown .Select-placeholder,
+.dash-dropdown input {
+    color: #eeeeff !important;
+}
+
+.dash-dropdown .Select-menu-outer {
+    background-color: #0f0f28 !important;
+    border: 1px solid #2e2e5e !important;
+}
+
+.dash-dropdown .VirtualizedSelectOption,
+.dash-dropdown .VirtualizedSelectFocusedOption {
+    color: #eeeeff !important;
+    background-color: #0f0f28 !important;
+}
+
+.dash-dropdown .VirtualizedSelectFocusedOption {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.08)) !important;
+    color: #ffffff !important;
+}
+
+.dash-dropdown .Select-option {
+    color: #eeeeff !important;
+    background-color: #0f0f28 !important;
+}
+
+.dash-dropdown .Select-option:hover,
+.dash-dropdown .Select-option.is-focused {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.08)) !important;
+    color: #ffffff !important;
+}
+
+.dash-dropdown .Select-value {
+    color: #eeeeff !important;
 }
