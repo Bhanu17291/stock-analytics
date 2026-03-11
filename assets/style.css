@@ -1,0 +1,605 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+/* ── Reset & Base ─────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg-deep: #080812;
+    --bg-base: #0d0d1f;
+    --bg-card: #11112a;
+    --bg-card-alt: #141430;
+    --border: #252550;
+    --border-glow: #4f46e5;
+    --accent-1: #6366f1;
+    --accent-2: #8b5cf6;
+    --accent-3: #a78bfa;
+    --green: #10b981;
+    --red: #f43f5e;
+    --amber: #f59e0b;
+    --text-primary: #eeeeff;
+    --text-muted: #6b6b9a;
+    --text-dim: #9898c0;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Outfit', sans-serif;
+}
+
+body {
+    font-family: var(--sans);
+    background-color: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+}
+
+
+/* ── Animations ───────────────────────────────────────────────────────── */
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse-dot {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes glow-border {
+    0%,
+    100% {
+        border-color: #252550;
+    }
+    50% {
+        border-color: #4f46e5;
+    }
+}
+
+.fade-in {
+    animation: fadeUp 0.45s cubic-bezier(.22, .68, 0, 1.2) both;
+}
+
+.fade-in-fast {
+    animation: fadeIn 0.25s ease both;
+}
+
+
+/* ── Navbar ───────────────────────────────────────────────────────────── */
+
+.main-navbar {
+    background: linear-gradient(90deg, #080812 0%, #0f0f28 40%, #080812 100%) !important;
+    border-bottom: 1px solid #1c1c40 !important;
+    box-shadow: 0 1px 40px rgba(99, 102, 241, 0.12);
+    padding: 0.75rem 0 !important;
+}
+
+.navbar-title {
+    font-family: var(--mono);
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: linear-gradient(90deg, #818cf8, #a78bfa, #c4b5fd);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+    letter-spacing: -0.02em;
+}
+
+.live-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+
+/* ── Search Card ──────────────────────────────────────────────────────── */
+
+.search-card {
+    background: linear-gradient(135deg, #0f0f28 0%, #13132e 100%) !important;
+    border: 1px solid #1e1e45 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    padding: 1.25rem !important;
+}
+
+
+/* ── Inputs ───────────────────────────────────────────────────────────── */
+
+.custom-input,
+.custom-input:focus {
+    font-family: var(--mono) !important;
+    font-size: 0.875rem !important;
+    background-color: #0a0a20 !important;
+    color: var(--text-primary) !important;
+    border: 1px solid #252550 !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 0.9rem !important;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.custom-input:focus {
+    border-color: var(--accent-1) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18), 0 0 16px rgba(99, 102, 241, 0.1) !important;
+    outline: none !important;
+}
+
+.custom-input::placeholder {
+    color: #38385a !important;
+}
+
+
+/* ── Dropdown overrides ───────────────────────────────────────────────── */
+
+
+/* Control (the visible box) */
+
+.Select-control {
+    background-color: #0a0a20 !important;
+    border: 1px solid #252550 !important;
+    border-radius: 10px !important;
+    color: var(--text-primary) !important;
+    height: 42px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.Select.is-open .Select-control,
+.Select.is-focused .Select-control {
+    border-color: var(--accent-1) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+}
+
+
+/* Dropdown menu panel */
+
+.Select-menu-outer {
+    background-color: #0f0f28 !important;
+    border: 1px solid #2e2e5e !important;
+    border-top: none !important;
+    border-radius: 0 0 12px 12px !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(99, 102, 241, 0.1) !important;
+    z-index: 9999 !important;
+    overflow: hidden;
+}
+
+
+/* Scrollable inner list */
+
+.Select-menu {
+    background-color: transparent !important;
+    max-height: 280px !important;
+    padding: 6px !important;
+}
+
+
+/* Each option row */
+
+.Select-option,
+.Select-option * {
+    font-family: var(--sans) !important;
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    color: #ffffff !important;
+    background-color: transparent !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    margin-bottom: 2px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease !important;
+    cursor: pointer !important;
+    line-height: 1.4 !important;
+}
+
+.Select-option:last-child {
+    margin-bottom: 0 !important;
+}
+
+.Select-option:hover,
+.Select-option.is-focused,
+.Select-option:hover *,
+.Select-option.is-focused * {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.08)) !important;
+    color: #ffffff !important;
+    padding-left: 18px !important;
+}
+
+.Select-option.is-selected {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.28), rgba(139, 92, 246, 0.15)) !important;
+    color: #c4b5fd !important;
+    font-weight: 500 !important;
+    border-left: 3px solid #7c3aed !important;
+    padding-left: 11px !important;
+}
+
+.Select-option.is-selected:hover {
+    padding-left: 11px !important;
+}
+
+
+/* Placeholder and selected value text */
+
+.Select-placeholder {
+    color: #38385a !important;
+    font-size: 0.875rem !important;
+    font-style: italic;
+    padding-left: 4px !important;
+}
+
+.Select--single>.Select-control .Select-value-label {
+    color: var(--text-primary) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+}
+
+
+/* Arrow icon */
+
+.Select-arrow-zone {
+    padding-right: 10px !important;
+}
+
+.Select-arrow {
+    border-top-color: #5555aa !important;
+    border-width: 5px 4px 0 !important;
+    transition: border-top-color 0.2s ease;
+}
+
+.Select.is-open .Select-arrow {
+    border-top-color: var(--accent-1) !important;
+}
+
+
+/* Clear (×) button */
+
+.Select-clear-zone {
+    color: #5555aa !important;
+    transition: color 0.15s ease;
+}
+
+.Select-clear-zone:hover {
+    color: var(--red) !important;
+}
+
+
+/* Flag emoji sizing in options */
+
+.Select-option span,
+.Select-value-label span {
+    font-size: 1rem;
+}
+
+
+/* ── Analyze Button ───────────────────────────────────────────────────── */
+
+.analyze-btn {
+    font-family: var(--sans) !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 0.03em !important;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 1rem !important;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.2s ease !important;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.35) !important;
+}
+
+.analyze-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent);
+    border-radius: inherit;
+}
+
+.analyze-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5) !important;
+}
+
+.analyze-btn:active {
+    transform: translateY(0) !important;
+}
+
+
+/* ── Stat Cards ───────────────────────────────────────────────────────── */
+
+.stat-card {
+    background: linear-gradient(145deg, #0f0f2a 0%, #141435 100%) !important;
+    border: 1px solid #1e1e45 !important;
+    border-radius: 14px !important;
+    transition: transform 0.25s cubic-bezier(.22, .68, 0, 1.2), box-shadow 0.25s ease, border-color 0.25s ease;
+    animation: fadeUp 0.45s cubic-bezier(.22, .68, 0, 1.2) both;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.25), 0 0 0 1px rgba(99, 102, 241, 0.3) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+.stat-card .card-body {
+    padding: 1rem 1.1rem !important;
+}
+
+.stat-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted) !important;
+    margin-bottom: 6px;
+}
+
+.stat-value {
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary) !important;
+    letter-spacing: -0.02em;
+}
+
+
+/* staggered card animation */
+
+.info-card-col:nth-child(1) .stat-card {
+    animation-delay: 0.04s;
+}
+
+.info-card-col:nth-child(2) .stat-card {
+    animation-delay: 0.08s;
+}
+
+.info-card-col:nth-child(3) .stat-card {
+    animation-delay: 0.12s;
+}
+
+.info-card-col:nth-child(4) .stat-card {
+    animation-delay: 0.16s;
+}
+
+.info-card-col:nth-child(5) .stat-card {
+    animation-delay: 0.20s;
+}
+
+.info-card-col:nth-child(6) .stat-card {
+    animation-delay: 0.24s;
+}
+
+
+/* ── Tabs ─────────────────────────────────────────────────────────────── */
+
+.nav-tabs {
+    border-bottom: 1px solid #1a1a3a !important;
+    gap: 0.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.nav-tabs .nav-link {
+    font-family: var(--sans);
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--text-muted) !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    padding: 0.65rem 1.1rem;
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    background: transparent !important;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #a0a0d0 !important;
+}
+
+.nav-tabs .nav-link.active {
+    color: #a78bfa !important;
+    border-bottom: 2px solid #7c3aed !important;
+    background: transparent !important;
+}
+
+
+/* ── Charts ───────────────────────────────────────────────────────────── */
+
+.chart-wrapper {
+    animation: fadeUp 0.4s ease both;
+}
+
+
+/* ── Portfolio ────────────────────────────────────────────────────────── */
+
+.portfolio-add-card {
+    background: linear-gradient(135deg, #0f0f28, #13132e) !important;
+    border: 1px solid #1e1e45 !important;
+    border-radius: 14px !important;
+}
+
+.portfolio-table th {
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted) !important;
+    border-color: #1a1a3a !important;
+    padding: 0.75rem 1rem;
+    background: #0a0a20;
+}
+
+.portfolio-table td {
+    font-family: var(--mono);
+    font-size: 0.83rem;
+    border-color: #1a1a3a !important;
+    vertical-align: middle;
+    padding: 0.7rem 1rem;
+    color: var(--text-dim);
+}
+
+.portfolio-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.portfolio-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.07) !important;
+}
+
+
+/* ── News Cards ───────────────────────────────────────────────────────── */
+
+.news-card {
+    background: linear-gradient(135deg, #0f0f28, #131330) !important;
+    border: 1px solid #1e1e45 !important;
+    border-radius: 12px !important;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeUp 0.4s ease both;
+    position: relative;
+    overflow: hidden;
+}
+
+.news-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #6366f1, #8b5cf6);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.news-card:hover {
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    transform: translateX(4px);
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+}
+
+.news-card:hover::before {
+    opacity: 1;
+}
+
+
+/* ── Error / Empty State ──────────────────────────────────────────────── */
+
+.error-card {
+    background: rgba(244, 63, 94, 0.06) !important;
+    border: 1px solid rgba(244, 63, 94, 0.2) !important;
+    border-radius: 14px !important;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+
+/* ── Loading Spinner ──────────────────────────────────────────────────── */
+
+._dash-loading {
+    opacity: 0.4;
+    transition: opacity 0.2s;
+}
+
+.dash-spinner circle {
+    stroke: var(--accent-1) !important;
+}
+
+
+/* ── Scrollbar ────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #252550;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3a3a6a;
+}
+
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .stat-value {
+        font-size: 0.85rem !important;
+    }
+    .navbar-title {
+        font-size: 1rem;
+    }
+    .nav-tabs .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .info-card-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+        margin-bottom: 0.5rem;
+    }
+    .search-card {
+        border-radius: 12px !important;
+    }
+}
