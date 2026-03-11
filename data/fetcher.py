@@ -1,3 +1,9 @@
+
+import requests
+import pandas as pd
+import os
+from datetime import datetime
+
 def fetch_stock_info(ticker: str) -> dict:
     try:
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
