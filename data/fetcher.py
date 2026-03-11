@@ -1,12 +1,18 @@
 # data/fetcher.py
 import yfinance as yf
 import pandas as pd
+import requests
+
+session = requests.Session()
+session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+})
 
 
 def fetch_stock_data(ticker: str, period: str = "6mo") -> pd.DataFrame:
     """Fetch OHLCV stock data from Yahoo Finance."""
     try:
-        stock = yf.Ticker(ticker)
+        stock = yf.Ticker(ticker,session=session)
         df = stock.history(period=period)
         if df.empty:
             return pd.DataFrame()
@@ -21,7 +27,7 @@ def fetch_stock_data(ticker: str, period: str = "6mo") -> pd.DataFrame:
 def fetch_stock_info(ticker: str) -> dict:
     """Fetch company info and current price."""
     try:
-        stock = yf.Ticker(ticker)
+        stock = yf.Ticker(ticker,session=session)
         info = stock.info
         return {
             "name": info.get("longName", ticker),
@@ -41,7 +47,7 @@ def fetch_stock_info(ticker: str) -> dict:
 def fetch_news(ticker: str) -> list:
     """Fetch latest news for a ticker."""
     try:
-        stock = yf.Ticker(ticker)
+        stock = yf.Ticker(ticker,session=session)
         news = stock.news
         results = []
         for item in news[:10]:
