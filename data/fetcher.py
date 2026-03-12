@@ -114,16 +114,37 @@ def fetch_stock_info(ticker: str) -> dict:
         t    = yf.Ticker(ticker)
         meta = t.info or {}
 
+        # Fallback: derive price + 52w range from OHLCV if meta is sparse
+        current_price = meta.get("currentPrice") or meta.get("regularMarketPrice") or 0.0
+        week_52_high  = meta.get("fiftyTwoWeekHigh") or 0.0
+        week_52_low   = meta.get("fiftyTwoWeekLow")  or 0.0
+
+        if not current_price:
+            logger.warning("No price in meta for %s — falling back to OHLCV", ticker)
+            df = fetch_stock_data(ticker, period="1y")
+            if not df.empty:
+                current_price = round(float(df["Close"].iloc[-1]), 2)
+                week_52_high  = round(float(df["High"].max()), 2)
+                week_52_low   = round(float(df["Low"].min()),  2)
+
+        # If still no price, ticker is truly invalid
+        if not current_price:
+            logger.error("Could not resolve any price for %s", ticker)
+            return {}
+
+        # Auto-detect currency from ticker suffix
+        currency = meta.get("currency") or ("INR" if ticker.endswith((".BO", ".NS")) else "USD")
+
         info = StockInfo(
             ticker        = ticker,
             name          = meta.get("longName") or meta.get("shortName") or ticker,
             sector        = meta.get("sector") or "N/A",
             market_cap    = meta.get("marketCap") or 0.0,
             pe_ratio      = meta.get("trailingPE") or 0.0,
-            current_price = meta.get("currentPrice") or meta.get("regularMarketPrice") or 0.0,
-            **{"52w_high": meta.get("fiftyTwoWeekHigh") or 0.0,
-               "52w_low":  meta.get("fiftyTwoWeekLow")  or 0.0},
-            currency      = meta.get("currency") or "USD",
+            current_price = current_price,
+            **{"52w_high": week_52_high,
+               "52w_low":  week_52_low},
+            currency      = currency,
         )
 
         result = info.model_dump(by_alias=True)
