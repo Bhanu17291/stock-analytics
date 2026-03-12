@@ -5,16 +5,16 @@ import os
 DEFAULT_TICKER = "AAPL"
 DEFAULT_TICKERS = [
     "AAPL",
-    "RELIANCE.BO",
-    "TCS.BO",
-    "HDFCBANK.BO",
-    "INFY.BO",
-    "ICICIBANK.BO",
-    "HINDUNILVR.BO",
-    "SBIN.BO",
-    "BAJFINANCE.BO",
-    "LT.BO",
-    "KOTAKBANK.BO"
+    "MSFT",
+    "TSLA",
+    "NVDA",
+    "AMZN",
+    "GOOGL",
+    "META",
+    "NFLX",
+    "JPM",
+    "BRK-B",
+    "JNJ",
 ]
 
 # Chart settings

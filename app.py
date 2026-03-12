@@ -12,17 +12,17 @@ from utils.helpers import fmt_market_cap, currency_symbol
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG], title=APP_TITLE, suppress_callback_exceptions=True)
 
 STOCK_OPTIONS = [
-    {"label": "🇺🇸 Apple Inc. (AAPL)",                      "value": "AAPL"},
-    {"label": "🇮🇳 Reliance Industries (RELIANCE.BO)",       "value": "RELIANCE.BO"},
-    {"label": "🇮🇳 Tata Consultancy Services (TCS.BO)",      "value": "TCS.BO"},
-    {"label": "🇮🇳 HDFC Bank (HDFCBANK.BO)",                 "value": "HDFCBANK.BO"},
-    {"label": "🇮🇳 Infosys (INFY.BO)",                       "value": "INFY.BO"},
-    {"label": "🇮🇳 ICICI Bank (ICICIBANK.BO)",               "value": "ICICIBANK.BO"},
-    {"label": "🇮🇳 Hindustan Unilever (HINDUNILVR.BO)",      "value": "HINDUNILVR.BO"},
-    {"label": "🇮🇳 State Bank of India (SBIN.BO)",           "value": "SBIN.BO"},
-    {"label": "🇮🇳 Bajaj Finance (BAJFINANCE.BO)",           "value": "BAJFINANCE.BO"},
-    {"label": "🇮🇳 Larsen & Toubro (LT.BO)",                 "value": "LT.BO"},
-    {"label": "🇮🇳 Kotak Mahindra Bank (KOTAKBANK.BO)",      "value": "KOTAKBANK.BO"},
+    {"label": "🇺🇸 Apple Inc. (AAPL)",            "value": "AAPL"},
+    {"label": "🇺🇸 Microsoft (MSFT)",              "value": "MSFT"},
+    {"label": "🇺🇸 Tesla (TSLA)",                  "value": "TSLA"},
+    {"label": "🇺🇸 NVIDIA (NVDA)",                 "value": "NVDA"},
+    {"label": "🇺🇸 Amazon (AMZN)",                 "value": "AMZN"},
+    {"label": "🇺🇸 Alphabet / Google (GOOGL)",     "value": "GOOGL"},
+    {"label": "🇺🇸 Meta (META)",                   "value": "META"},
+    {"label": "🇺🇸 Netflix (NFLX)",                "value": "NFLX"},
+    {"label": "🇺🇸 JPMorgan Chase (JPM)",          "value": "JPM"},
+    {"label": "🇺🇸 Berkshire Hathaway (BRK-B)",    "value": "BRK-B"},
+    {"label": "🇺🇸 Johnson & Johnson (JNJ)",       "value": "JNJ"},
 ]
 
 
@@ -60,7 +60,7 @@ search_bar = dbc.Card(
             dbc.Col(
                 dbc.Input(
                     id="ticker-input",
-                    placeholder="Or type any ticker  (e.g. AAPL, TSLA, RELIANCE.BO...)",
+                    placeholder="Or type any ticker  (e.g. AAPL, TSLA, MSFT...)",
                     value=DEFAULT_TICKER, type="text",
                     className="custom-input"
                 ),
