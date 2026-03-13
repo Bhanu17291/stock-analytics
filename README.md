@@ -1,4 +1,8 @@
-A real-time stock analytics dashboard built with Python Dash, featuring candlestick charts, RSI/MACD indicators, portfolio tracking with P&L, and live news sentiment for major US stocks.
+# 📈 Stock Analytics Dashboard
 
-video
-https://github.com/Bhanu17291/stock-analytics/issues/1#issue-4069633507
+> Real-time stock market analytics, portfolio tracking, and news sentiment — all in one sleek dashboard.
+
+A powerful **Python Dash** web app that lets you analyze any US stock with live candlestick charts, 
+RSI/MACD technical indicators, portfolio P&L tracking, and real-time news sentiment.
+
+🎬 [Watch Demo Video](#)
