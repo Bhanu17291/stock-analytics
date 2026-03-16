@@ -4,5 +4,11 @@
     "current_value": 3912.15,
     "pnl": -13787.85,
     "pnl_pct": -77.9
+  },
+  "2026-03-13": {
+    "invested": 17700.0,
+    "current_value": 21739.6,
+    "pnl": 4039.6,
+    "pnl_pct": 22.82
   }
 }
