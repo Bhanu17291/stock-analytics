@@ -1,8 +1,3 @@
-notepad requirements.txt
-```
-
-Replace everything with:
-```
 streamlit>=1.32.0
 yfinance>=0.2.37
 plotly>=5.20.0
